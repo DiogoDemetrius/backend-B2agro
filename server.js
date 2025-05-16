@@ -1,32 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
 
-// Carrega variáveis de ambiente
-dotenv.config();
-
-// Importa rotas
 const mensagemRoutes = require('./routes/mensagemRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
 
-// Inicializa o app Express
 const app = express();
 
-// Middlewares
-app.use(cors());
-app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Logging em ambiente de desenvolvimento
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
-// Conexão com MongoDB
+// Conexão com o MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -39,17 +23,32 @@ mongoose.connect(process.env.MONGODB_URI, {
   process.exit(1);
 });
 
+// Middlewares
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
 // Rotas
 app.use('/api/mensagens', mensagemRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 
-// Rota raiz
-app.get('/', (req, res) => {
+// Rota de status
+app.get('/api/health', (req, res) => {
   res.json({
     mensagem: 'API de Mensagens e Newsletter',
     status: 'online',
     versao: '1.0.0'
   });
+});
+
+// Rota raiz opcional
+app.get('/', (req, res) => {
+  res.redirect('/api/health');
 });
 
 // Middleware para rotas não encontradas
@@ -63,7 +62,6 @@ app.use((req, res, next) => {
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  
   res.status(err.statusCode || 500).json({
     sucesso: false,
     mensagem: err.message || 'Erro interno do servidor',
@@ -71,12 +69,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Porta
-const PORT = process.env.PORT || 5000;
+// Só executa localmente
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT} em modo ${process.env.NODE_ENV}`);
+  });
+}
 
-// Inicia o servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT} em modo ${process.env.NODE_ENV}`);
-});
-
+// Exporta o app para Vercel usar
 module.exports = app;
