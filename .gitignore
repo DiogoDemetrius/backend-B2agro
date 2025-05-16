@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# Configurações de ambiente
+.env
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Dependências específicas de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos do editor/IDE
+.vscode/
+.idea/
+
+# Build (se for gerado em alguma etapa)
+dist/
+build/
+
+# Outros
+*.tgz
+*.swp
