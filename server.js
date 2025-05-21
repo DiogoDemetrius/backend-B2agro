@@ -69,13 +69,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Só executa localmente
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT} em modo ${process.env.NODE_ENV}`);
-  });
-}
+// Escutar na porta definida pelo ambiente (Render, Heroku, etc) ou 5000 localmente
+const PORT = process.env.PORT || 5000;
 
-// Exporta o app para Vercel usar
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT} em modo ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Exporta o app caso queira importar em testes ou serverless
 module.exports = app;
